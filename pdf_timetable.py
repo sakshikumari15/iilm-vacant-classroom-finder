@@ -12,7 +12,7 @@ import statistics
 from pathlib import Path
 from typing import Iterable
 
-import fitz  # PyMuPDF
+import pymupdf
 
 DAYS = ("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday")
 
@@ -39,6 +39,7 @@ ROOM_PATTERNS = (
     r"Chemistry Lab - NR Block",
     r"Chemistry Lab",
 )
+
 ROOM_RE = re.compile("|".join(f"({p})" for p in ROOM_PATTERNS), re.IGNORECASE)
 
 SECTION_RE = re.compile(r"[1-4](?:BT|BI|FT)\d*", re.IGNORECASE)
@@ -50,16 +51,19 @@ def _norm(text: str) -> str:
 
 def _cluster(values: Iterable[float], tolerance: float = 2.5) -> list[float]:
     groups: list[list[float]] = []
+
     for value in sorted(values):
         if not groups or value - groups[-1][-1] > tolerance:
             groups.append([value])
         else:
             groups[-1].append(value)
+
     return [sum(group) / len(group) for group in groups]
 
 
 def _canonical_room(room: str) -> str:
     room = _norm(room).rstrip(".")
+
     aliases = {
         "biochemistry lab": "Biochemistry Lab",
         "genetic engg lab": "Genetic Engineering Lab",
@@ -68,52 +72,69 @@ def _canonical_room(room: str) -> str:
         "foundation block 90": "Foundation Block 90",
         "microbiology/fermentation lab": "Microbiology/Fermentation Lab",
     }
+
     return aliases.get(room.lower(), room)
 
 
-def _section(page: fitz.Page) -> str:
+def _section(page: pymupdf.Page) -> str:
     for block in page.get_text("blocks"):
         text = _norm(block[4])
+
         if block[1] < 190 and SECTION_RE.fullmatch(text):
             return text
 
     top_text = " ".join(
-        _norm(block[4]) for block in page.get_text("blocks") if block[1] < 210
+        _norm(block[4])
+        for block in page.get_text("blocks")
+        if block[1] < 210
     )
+
     if "M.Tech. Biotechnology I Semester" in top_text:
         return "M.Tech Biotechnology I Semester"
+
     if "M.Tech. Bioinformatics I Semester" in top_text:
         return "M.Tech Bioinformatics I Semester"
+
     return f"PDF page {page.number + 1}"
 
 
-def _period_bounds(page: fitz.Page) -> list[float] | None:
+def _period_bounds(page: pymupdf.Page) -> list[float] | None:
     """Return the 10 x-boundaries for the 9 timetable periods."""
+
     xs: list[float] = []
 
     for drawing in page.get_drawings():
         for item in drawing["items"]:
             if item[0] == "l":
                 p1, p2 = item[1], item[2]
+
                 if abs(p1.x - p2.x) < 2 and 130 < p1.y < 900:
                     xs.append(p1.x)
+
             elif item[0] == "re":
                 rect = item[1]
+
                 if rect.width < 400 and 130 < rect.y0 < 900:
                     xs.extend((rect.x0, rect.x1))
 
     candidates = _cluster(xs)
+
     best: tuple[float, list[float]] | None = None
 
     for start in range(max(0, len(candidates) - 9)):
         run = candidates[start : start + 10]
+
         if len(run) != 10:
             continue
+
         gaps = [run[i + 1] - run[i] for i in range(9)]
         median_gap = statistics.median(gaps)
+
         if not 60 <= median_gap <= 160:
             continue
+
         score = sum(abs(gap - median_gap) for gap in gaps) / median_gap
+
         if best is None or score < best[0]:
             best = (score, run)
 
@@ -127,6 +148,7 @@ def _period_bounds(page: fitz.Page) -> list[float] | None:
         for block in page.get_text("blocks")
         if "9:00 - 9:55" in _norm(block[4])
     ]
+
     if not header_blocks:
         header_blocks = [
             block
@@ -137,17 +159,22 @@ def _period_bounds(page: fitz.Page) -> list[float] | None:
     if header_blocks:
         block = header_blocks[0]
         left, right = block[0], block[2]
-        return [left + i * (right - left) / 9 for i in range(10)]
+
+        return [
+            left + i * (right - left) / 9
+            for i in range(10)
+        ]
 
     return None
 
 
-def _day_bounds(page: fitz.Page) -> list[tuple[str, float, float]]:
+def _day_bounds(page: pymupdf.Page) -> list[tuple[str, float, float]]:
     day_positions: dict[str, list[float]] = {}
 
     for block in page.get_text("blocks"):
         text = _norm(block[4])
         center_y = (block[1] + block[3]) / 2
+
         for day in DAYS:
             if re.search(rf"\b{day}\b", text):
                 day_positions.setdefault(day, []).append(center_y)
@@ -156,9 +183,15 @@ def _day_bounds(page: fitz.Page) -> list[tuple[str, float, float]]:
         return []
 
     medians = {
-        day: statistics.median(values) for day, values in day_positions.items()
+        day: statistics.median(values)
+        for day, values in day_positions.items()
     }
-    ordered = sorted(medians.items(), key=lambda item: item[1])
+
+    ordered = sorted(
+        medians.items(),
+        key=lambda item: item[1],
+    )
+
     result: list[tuple[str, float, float]] = []
 
     for index, (day, center) in enumerate(ordered):
@@ -167,25 +200,36 @@ def _day_bounds(page: fitz.Page) -> list[tuple[str, float, float]]:
             if index
             else center - 45
         )
+
         upper = (
             (center + ordered[index + 1][1]) / 2
             if index + 1 < len(ordered)
             else center + 45
         )
+
         result.append((day, lower, upper))
 
     return result
 
 
-def parse_pdf_bytes(pdf_bytes: bytes, source_name: str = "PDF") -> list[dict]:
+def parse_pdf_bytes(
+    pdf_bytes: bytes,
+    source_name: str = "PDF",
+) -> list[dict]:
     """Parse a timetable PDF into normalized room-occupancy records."""
-    document = fitz.open(stream=pdf_bytes, filetype="pdf")
+
+    document = pymupdf.open(
+        stream=pdf_bytes,
+        filetype="pdf",
+    )
+
     records: list[dict] = []
 
     try:
         for page in document:
             period_bounds = _period_bounds(page)
             day_bounds = _day_bounds(page)
+
             if not period_bounds or not day_bounds:
                 continue
 
@@ -194,14 +238,21 @@ def parse_pdf_bytes(pdf_bytes: bytes, source_name: str = "PDF") -> list[dict]:
             for block in page.get_text("blocks"):
                 x0, y0, x1, y1, raw_text = block[:5]
                 text = _norm(raw_text)
+
                 if not text:
                     continue
+
                 if "9:00 - 9:55" in text:
                     continue
-                if "IILM University" in text or "School of Engineering" in text:
+
+                if (
+                    "IILM University" in text
+                    or "School of Engineering" in text
+                ):
                     continue
 
                 room_match = ROOM_RE.search(text)
+
                 if not room_match:
                     continue
 
@@ -216,6 +267,7 @@ def parse_pdf_bytes(pdf_bytes: bytes, source_name: str = "PDF") -> list[dict]:
                     for day, lower, upper in day_bounds
                     if y1 >= lower and y0 <= upper
                 ]
+
                 if not matching_days:
                     continue
 
@@ -223,6 +275,7 @@ def parse_pdf_bytes(pdf_bytes: bytes, source_name: str = "PDF") -> list[dict]:
                     for period in range(9):
                         if x1 < period_bounds[period] - 3:
                             continue
+
                         if x0 > period_bounds[period + 1] + 3:
                             continue
 
@@ -236,6 +289,7 @@ def parse_pdf_bytes(pdf_bytes: bytes, source_name: str = "PDF") -> list[dict]:
                                 "page": page.number + 1,
                             }
                         )
+
     finally:
         document.close()
 
@@ -251,6 +305,7 @@ def parse_pdf_bytes(pdf_bytes: bytes, source_name: str = "PDF") -> list[dict]:
         ): record
         for record in records
     }
+
     return sorted(
         unique.values(),
         key=lambda record: (
@@ -264,4 +319,8 @@ def parse_pdf_bytes(pdf_bytes: bytes, source_name: str = "PDF") -> list[dict]:
 
 def parse_pdf_file(path: str | Path) -> list[dict]:
     path = Path(path)
-    return parse_pdf_bytes(path.read_bytes(), source_name=path.name)
+
+    return parse_pdf_bytes(
+        path.read_bytes(),
+        source_name=path.name,
+    )
