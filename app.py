@@ -1,14 +1,25 @@
 from flask import Flask, render_template, request
 import requests
+import time
 
 app = Flask(__name__)
 
+# Store timetable data temporarily
+timetable_cache = None
+cache_time = 0
 
-# --------------------------------
-# Get LIVE timetable from EduPage
-# --------------------------------
+# Refresh timetable every 10 minutes
+CACHE_DURATION = 600
+
 
 def get_timetable():
+    global timetable_cache, cache_time
+
+    current_time = time.time()
+
+    # Use cached timetable if it is still fresh
+    if timetable_cache is not None and current_time - cache_time < CACHE_DURATION:
+        return timetable_cache
 
     url = "https://iilmgn.edupage.org/timetable/server/regulartt.js?__func=regularttGetData"
 
@@ -17,24 +28,22 @@ def get_timetable():
         "__gsh": "00000000"
     }
 
-    response = requests.post(url, json=data)
+    response = requests.post(url, json=data, timeout=15)
+    response.raise_for_status()
 
-    return response.json()
+    timetable_cache = response.json()
+    cache_time = current_time
 
+    return timetable_cache
 
-# --------------------------------
-# Home Page
-# --------------------------------
 
 @app.route("/", methods=["GET", "POST"])
 def home():
 
-    # Get LIVE timetable
     data = get_timetable()
 
     tables = data["r"]["dbiAccessorRes"]["tables"]
 
-    # Find required tables
     for table in tables:
 
         if table["id"] == "cards":
@@ -50,9 +59,7 @@ def home():
             lessons = table
 
 
-    # --------------------------------
-    # Room ID → Room Name
-    # --------------------------------
+    # Classroom names
 
     room_names = {}
 
@@ -60,22 +67,20 @@ def home():
         room_names[room["id"]] = room["name"]
 
 
-    # --------------------------------
-    # Period → Time
-    # --------------------------------
+    # Period timings
 
     period_times = {}
 
     for period in periods["data_rows"]:
 
         period_times[period["id"]] = (
-            period["starttime"] + " - " + period["endtime"]
+            period["starttime"]
+            + " - "
+            + period["endtime"]
         )
 
 
-    # --------------------------------
-    # Lesson ID → Duration
-    # --------------------------------
+    # Lesson duration
 
     lesson_duration = {}
 
@@ -84,33 +89,31 @@ def home():
         lesson_duration[lesson["id"]] = lesson["durationperiods"]
 
 
-    # --------------------------------
-    # Day Codes
-    # --------------------------------
+    # Day codes
 
     day_codes = {
+
         "monday": "100000",
         "tuesday": "010000",
         "wednesday": "001000",
         "thursday": "000100",
         "friday": "000010",
         "saturday": "000001"
+
     }
 
 
     vacant_rooms = []
+
     selected_day = ""
     selected_period = ""
     time = ""
 
 
-    # --------------------------------
-    # Search
-    # --------------------------------
-
     if request.method == "POST":
 
         selected_day = request.form["day"]
+
         selected_period = request.form["period"]
 
         day_code = day_codes[selected_day]
@@ -120,7 +123,6 @@ def home():
         selected = int(selected_period)
 
 
-        # Check every timetable card
         for card in cards["data_rows"]:
 
             card_days = card.get("days", "")
@@ -128,7 +130,7 @@ def home():
             if len(card_days) < 6:
                 card_days = card_days.zfill(6)
 
-            # Check if selected day is included
+
             if day_code not in card_days:
                 continue
 
@@ -141,7 +143,6 @@ def home():
             )
 
 
-            # Check multi-period lessons
             if start_period <= selected < start_period + duration:
 
                 for room_id in card["classroomids"]:
@@ -153,11 +154,9 @@ def home():
                         )
 
 
-        # Remove duplicates
         occupied_rooms = set(occupied_rooms)
 
 
-        # Find vacant rooms
         for room in room_names.values():
 
             if room not in occupied_rooms:
@@ -165,7 +164,6 @@ def home():
                 vacant_rooms.append(room)
 
 
-        # Get period timing
         time = period_times.get(
             selected_period,
             "Unknown"
@@ -173,17 +171,20 @@ def home():
 
 
     return render_template(
+
         "index.html",
+
         vacant_rooms=vacant_rooms,
+
         selected_day=selected_day,
+
         selected_period=selected_period,
+
         time=time
+
     )
 
 
-# --------------------------------
-# Start App
-# --------------------------------
-
 if __name__ == "__main__":
+
     app.run(debug=True)
