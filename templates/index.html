@@ -1,175 +1,643 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
 
-    <title>IILM Vacant Classroom Finder</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>IILM Vacant Classroom Finder 🎀</title>
 
     <style>
 
         * {
             box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
 
         body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            background: #f4f6f9;
-            color: #222;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #fff5fa;
+            color: #4a2637;
+            min-height: 100vh;
+            overflow-x: hidden;
         }
 
-        /* Header */
 
-        .header {
-            background: #111827;
+        /* ================= CUTE BACKGROUND ================= */
+
+        body::before {
+            content: "✿";
+            position: fixed;
+            top: 100px;
+            left: 5%;
+            font-size: 80px;
+            color: #fbcfe8;
+            opacity: 0.45;
+            z-index: -1;
+            transform: rotate(-15deg);
+        }
+
+        body::after {
+            content: "♡";
+            position: fixed;
+            right: 6%;
+            bottom: 120px;
+            font-size: 100px;
+            color: #e9d5ff;
+            opacity: 0.45;
+            z-index: -1;
+            transform: rotate(15deg);
+        }
+
+
+        /* ================= HEADER ================= */
+
+        header {
+            background: linear-gradient(
+                135deg,
+                #ec4899,
+                #f472b6,
+                #c084fc
+            );
+
             color: white;
-            padding: 25px 20px;
+
+            padding: 22px 7%;
+
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+            box-shadow:
+                0 5px 20px rgba(236, 72, 153, 0.20);
+        }
+
+        .logo {
+            font-size: 21px;
+            font-weight: bold;
+        }
+
+        .live-status {
+
+            display: flex;
+            align-items: center;
+            gap: 8px;
+
+            font-size: 13px;
+
+            background: rgba(255,255,255,0.20);
+
+            padding: 8px 14px;
+
+            border-radius: 20px;
+        }
+
+        .live-dot {
+
+            width: 9px;
+            height: 9px;
+
+            background: #bbf7d0;
+
+            border-radius: 50%;
+
+            box-shadow:
+                0 0 10px #bbf7d0;
+        }
+
+
+        /* ================= HERO ================= */
+
+        .hero {
+
             text-align: center;
+
+            padding: 65px 20px 45px;
+
+            position: relative;
         }
 
-        .header h1 {
-            margin: 0;
-            font-size: 32px;
+        .hero::before {
+
+            content: "🎀";
+
+            position: absolute;
+
+            top: 20px;
+            left: 18%;
+
+            font-size: 30px;
+
+            transform: rotate(-15deg);
         }
 
-        .header p {
-            margin: 8px 0 0;
-            color: #d1d5db;
+        .hero::after {
+
+            content: "♡";
+
+            position: absolute;
+
+            top: 35px;
+            right: 18%;
+
+            font-size: 38px;
+
+            color: #f9a8d4;
+
+            transform: rotate(15deg);
+        }
+
+        .hero h1 {
+
+            font-size: clamp(38px, 5vw, 58px);
+
+            line-height: 1.1;
+
+            margin-bottom: 18px;
+
+            color: #4a2637;
+        }
+
+        .hero h1 span {
+
+            background:
+                linear-gradient(
+                    90deg,
+                    #ec4899,
+                    #a855f7
+                );
+
+            -webkit-background-clip: text;
+
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+
+            color: #8b6476;
+
+            font-size: 17px;
+
+            max-width: 650px;
+
+            margin: auto;
+
+            line-height: 1.7;
         }
 
 
-        /* Main container */
+        /* ================= SEARCH CARD ================= */
 
-        .container {
-            max-width: 900px;
-            margin: 40px auto;
-            padding: 0 20px;
+        .search-container {
+
+            width: min(900px, 92%);
+
+            margin: 0 auto 55px;
         }
 
+        .search-card {
 
-        /* Search box */
-
-        .search-box {
             background: white;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+
+            border-radius: 26px;
+
+            padding: 32px;
+
+            border: 2px solid #fbcfe8;
+
+            box-shadow:
+                0 15px 40px rgba(236,72,153,0.10);
         }
 
-        .search-box h2 {
-            margin-top: 0;
-            text-align: center;
+        .search-title {
+
+            font-size: 20px;
+
+            font-weight: bold;
+
+            margin-bottom: 23px;
+
+            color: #6b304c;
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 8px;
         }
 
+        .search-title::before {
+            content: "🌸";
+        }
 
         .form-row {
-            display: flex;
-            gap: 20px;
-            justify-content: center;
-            flex-wrap: wrap;
+
+            display: grid;
+
+            grid-template-columns:
+                1fr 1fr auto;
+
+            gap: 15px;
+
+            align-items: end;
         }
 
+        .field {
 
-        .form-group {
             display: flex;
+
             flex-direction: column;
-            width: 300px;
-        }
 
+            gap: 8px;
+        }
 
         label {
-            font-weight: bold;
-            margin-bottom: 8px;
-        }
 
+            font-size: 13px;
+
+            font-weight: bold;
+
+            color: #8b6476;
+        }
 
         select {
-            padding: 12px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
+
+            width: 100%;
+
+            padding: 14px 15px;
+
+            border: 1px solid #f3b6d2;
+
+            border-radius: 13px;
+
             font-size: 15px;
-            background: white;
+
+            background: #fff8fb;
+
+            color: #4a2637;
+
+            outline: none;
+
+            cursor: pointer;
+
+            transition: 0.2s;
         }
 
+        select:hover {
+
+            border-color: #f472b6;
+
+            background: #fff1f7;
+        }
+
+        select:focus {
+
+            border-color: #ec4899;
+
+            background: white;
+
+            box-shadow:
+                0 0 0 3px rgba(236,72,153,0.10);
+        }
+
+
+        /* ================= BUTTON ================= */
 
         button {
-            display: block;
-            margin: 25px auto 0;
-            padding: 13px 28px;
-            border: none;
-            border-radius: 8px;
-            background: #111827;
-            color: white;
-            font-size: 16px;
-            cursor: pointer;
-        }
 
+            border: none;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #ec4899,
+                    #d946ef
+                );
+
+            color: white;
+
+            padding: 14px 23px;
+
+            border-radius: 13px;
+
+            font-size: 15px;
+
+            font-weight: bold;
+
+            cursor: pointer;
+
+            transition: 0.25s;
+
+            white-space: nowrap;
+
+            box-shadow:
+                0 7px 18px rgba(236,72,153,0.25);
+        }
 
         button:hover {
-            background: #374151;
+
+            transform: translateY(-3px) rotate(-1deg);
+
+            box-shadow:
+                0 12px 25px rgba(236,72,153,0.32);
         }
 
 
-        /* Results */
+        /* ================= RESULTS ================= */
 
-        .result {
-            margin-top: 30px;
+        .results {
+
+            width: min(1100px, 92%);
+
+            margin: 0 auto 70px;
         }
-
 
         .result-header {
-            background: white;
-            padding: 25px;
-            border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-            text-align: center;
-        }
 
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: center;
+
+            margin-bottom: 22px;
+
+            gap: 15px;
+        }
 
         .result-header h2 {
-            margin: 0 0 10px;
+
+            font-size: 25px;
+
+            color: #57283e;
         }
 
+        .result-info {
 
-        .time {
-            color: #666;
+            color: #9b7184;
+
+            font-size: 14px;
+
+            margin-top: 5px;
         }
-
 
         .count {
-            font-size: 28px;
+
+            background: #fce7f3;
+
+            color: #be185d;
+
+            padding: 9px 15px;
+
+            border-radius: 20px;
+
+            font-size: 14px;
+
             font-weight: bold;
-            margin: 15px 0 0;
+
+            border: 1px solid #fbcfe8;
         }
 
 
-        /* Classroom grid */
+        /* ================= ROOM CARDS ================= */
 
         .rooms {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 15px;
-            margin-top: 20px;
-        }
 
+            display: grid;
+
+            grid-template-columns:
+                repeat(
+                    auto-fill,
+                    minmax(170px, 1fr)
+                );
+
+            gap: 16px;
+        }
 
         .room {
-            background: #eaf8ee;
-            color: #176b32;
-            padding: 18px;
-            border-radius: 10px;
+
+            background: white;
+
+            border: 1px solid #f9c6dd;
+
+            border-radius: 20px;
+
+            padding: 23px;
+
             text-align: center;
+
+            font-size: 17px;
+
             font-weight: bold;
-            border: 1px solid #ccebd5;
+
+            color: #6b304c;
+
+            box-shadow:
+                0 6px 18px rgba(236,72,153,0.07);
+
+            transition: 0.25s;
+
+            position: relative;
+        }
+
+        .room:hover {
+
+            transform:
+                translateY(-6px)
+                rotate(1deg);
+
+            border-color: #f472b6;
+
+            box-shadow:
+                0 12px 28px rgba(236,72,153,0.15);
+
+            background: #fff8fb;
+        }
+
+        .room::after {
+
+            content: "♡";
+
+            position: absolute;
+
+            top: 9px;
+
+            right: 12px;
+
+            color: #f9a8d4;
+
+            font-size: 15px;
+        }
+
+        .room-icon {
+
+            width: 52px;
+
+            height: 52px;
+
+            margin: 0 auto 10px;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            border-radius: 16px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #fce7f3,
+                    #f3e8ff
+                );
+
+            font-size: 26px;
         }
 
 
-        /* Footer */
+        /* ================= EMPTY STATE ================= */
 
-        .footer {
+        .empty {
+
             text-align: center;
-            color: #777;
-            margin: 40px 0 20px;
-            font-size: 14px;
+
+            padding: 55px 20px;
+
+            background: white;
+
+            border-radius: 22px;
+
+            border: 1px solid #fbcfe8;
+
+            box-shadow:
+                0 8px 25px rgba(236,72,153,0.06);
+        }
+
+        .empty-icon {
+
+            font-size: 45px;
+
+            margin-bottom: 12px;
+        }
+
+        .empty h3 {
+
+            margin-bottom: 8px;
+
+            color: #6b304c;
+        }
+
+        .empty p {
+
+            color: #9b7184;
+        }
+
+
+        /* ================= FOOTER ================= */
+
+        footer {
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #4a2637,
+                    #6b304c
+                );
+
+            color: #fbcfe8;
+
+            text-align: center;
+
+            padding: 30px;
+
+            font-size: 13px;
+
+            line-height: 1.8;
+        }
+
+        footer strong {
+
+            color: white;
+        }
+
+
+        /* ================= MOBILE ================= */
+
+        @media (max-width: 700px) {
+
+            header {
+
+                padding: 18px 5%;
+            }
+
+            .logo {
+
+                font-size: 17px;
+            }
+
+            .live-status {
+
+                font-size: 11px;
+            }
+
+            .hero {
+
+                padding: 50px 20px 35px;
+            }
+
+            .hero::before {
+
+                left: 8%;
+            }
+
+            .hero::after {
+
+                right: 8%;
+            }
+
+            .hero p {
+
+                font-size: 15px;
+            }
+
+            .search-card {
+
+                padding: 22px;
+            }
+
+            .form-row {
+
+                grid-template-columns: 1fr;
+            }
+
+            button {
+
+                width: 100%;
+            }
+
+            .result-header {
+
+                flex-direction: column;
+
+                align-items: flex-start;
+            }
+
+            .rooms {
+
+                grid-template-columns:
+                    repeat(2, 1fr);
+            }
+
+            .room {
+
+                padding: 20px 10px;
+
+                font-size: 14px;
+            }
+
         }
 
     </style>
@@ -180,28 +648,50 @@
 <body>
 
 
-    <!-- Header -->
+    <!-- HEADER -->
 
-    <div class="header">
+    <header>
 
-        <h1>🏫 IILM Vacant Classroom Finder</h1>
+        <div class="logo">
+            🎀 IILM University
+        </div>
+
+        <div class="live-status">
+
+            <span class="live-dot"></span>
+
+            Live Timetable
+
+        </div>
+
+    </header>
+
+
+    <!-- HERO -->
+
+    <section class="hero">
+
+        <h1>
+            Find an <span>Empty Classroom</span> 🎀
+        </h1>
 
         <p>
-            Find available classrooms at IILM University
+            Quickly find available classrooms at IILM University
+            based on the day and period you need.
         </p>
 
-    </div>
+    </section>
 
 
+    <!-- SEARCH -->
 
-    <div class="container">
+    <div class="search-container">
 
+        <div class="search-card">
 
-        <!-- Search -->
-
-        <div class="search-box">
-
-            <h2>Find an Available Classroom</h2>
+            <div class="search-title">
+                Check Classroom Availability
+            </div>
 
 
             <form method="POST">
@@ -209,68 +699,119 @@
                 <div class="form-row">
 
 
-                    <!-- Day -->
+                    <!-- DAY -->
 
-                    <div class="form-group">
+                    <div class="field">
 
-                        <label>Select Day</label>
+                        <label for="day">
+                            DAY
+                        </label>
 
-                        <select name="day">
+                        <select
+                            name="day"
+                            id="day"
+                            required
+                        >
 
-                            <option value="monday">Monday</option>
-                            <option value="tuesday">Tuesday</option>
-                            <option value="wednesday">Wednesday</option>
-                            <option value="thursday">Thursday</option>
-                            <option value="friday">Friday</option>
-                            <option value="saturday">Saturday</option>
+                            <option value="">
+                                Select day
+                            </option>
+
+                            <option value="monday"
+                                {% if selected_day == "monday" %}selected{% endif %}>
+                                Monday
+                            </option>
+
+                            <option value="tuesday"
+                                {% if selected_day == "tuesday" %}selected{% endif %}>
+                                Tuesday
+                            </option>
+
+                            <option value="wednesday"
+                                {% if selected_day == "wednesday" %}selected{% endif %}>
+                                Wednesday
+                            </option>
+
+                            <option value="thursday"
+                                {% if selected_day == "thursday" %}selected{% endif %}>
+                                Thursday
+                            </option>
+
+                            <option value="friday"
+                                {% if selected_day == "friday" %}selected{% endif %}>
+                                Friday
+                            </option>
+
+                            <option value="saturday"
+                                {% if selected_day == "saturday" %}selected{% endif %}>
+                                Saturday
+                            </option>
 
                         </select>
 
                     </div>
 
 
+                    <!-- PERIOD -->
 
-                    <!-- Period -->
+                    <div class="field">
 
-                    <div class="form-group">
+                        <label for="period">
+                            PERIOD
+                        </label>
 
-                        <label>Select Period</label>
+                        <select
+                            name="period"
+                            id="period"
+                            required
+                        >
 
-                        <select name="period">
+                            <option value="">
+                                Select period
+                            </option>
 
-                            <option value="1">
+                            <option value="1"
+                                {% if selected_period == "1" %}selected{% endif %}>
                                 Period 1 — 09:00–09:55
                             </option>
 
-                            <option value="2">
+                            <option value="2"
+                                {% if selected_period == "2" %}selected{% endif %}>
                                 Period 2 — 09:55–10:50
                             </option>
 
-                            <option value="3">
+                            <option value="3"
+                                {% if selected_period == "3" %}selected{% endif %}>
                                 Period 3 — 10:50–11:45
                             </option>
 
-                            <option value="4">
+                            <option value="4"
+                                {% if selected_period == "4" %}selected{% endif %}>
                                 Period 4 — 11:45–12:40
                             </option>
 
-                            <option value="5">
+                            <option value="5"
+                                {% if selected_period == "5" %}selected{% endif %}>
                                 Period 5 — 12:40–13:35
                             </option>
 
-                            <option value="6">
+                            <option value="6"
+                                {% if selected_period == "6" %}selected{% endif %}>
                                 Period 6 — 13:35–14:30
                             </option>
 
-                            <option value="7">
+                            <option value="7"
+                                {% if selected_period == "7" %}selected{% endif %}>
                                 Period 7 — 14:30–15:25
                             </option>
 
-                            <option value="8">
+                            <option value="8"
+                                {% if selected_period == "8" %}selected{% endif %}>
                                 Period 8 — 15:25–16:20
                             </option>
 
-                            <option value="9">
+                            <option value="9"
+                                {% if selected_period == "9" %}selected{% endif %}>
                                 Period 9 — 16:20–17:15
                             </option>
 
@@ -279,80 +820,116 @@
                     </div>
 
 
+                    <!-- BUTTON -->
+
+                    <button type="submit">
+                        Find Rooms 💗
+                    </button>
+
                 </div>
-
-
-                <button type="submit">
-                    🔍 Find Vacant Classrooms
-                </button>
 
             </form>
 
         </div>
 
+    </div>
 
 
-        <!-- Results -->
+    <!-- RESULTS -->
 
-        {% if selected_day %}
+    {% if selected_day %}
 
-        <div class="result">
+    <section class="results">
 
+        <div class="result-header">
 
-            <div class="result-header">
+            <div>
 
-                <h2>🟢 Available Classrooms</h2>
+                <h2>
+                    🌸 Available Classrooms
+                </h2>
 
-                <div class="time">
+                <p class="result-info">
 
-                    {{ selected_day.capitalize() }}
-                    — Period {{ selected_period }}
-                    — {{ time }}
+                    {{ selected_day|capitalize }}
 
-                </div>
+                    · Period {{ selected_period }}
 
+                    · {{ time }}
 
-                <div class="count">
-
-                    {{ vacant_rooms|length }} classrooms available
-
-                </div>
-
-            </div>
-
-
-
-            <div class="rooms">
-
-                {% for room in vacant_rooms %}
-
-                <div class="room">
-
-                    🟢 {{ room }}
-
-                </div>
-
-                {% endfor %}
+                </p>
 
             </div>
 
+
+            <div class="count">
+
+                {{ vacant_rooms|length }}
+                rooms available
+
+            </div>
+
+        </div>
+
+
+        {% if vacant_rooms %}
+
+        <div class="rooms">
+
+            {% for room in vacant_rooms %}
+
+            <div class="room">
+
+                <div class="room-icon">
+                    🏫
+                </div>
+
+                {{ room }}
+
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+
+        {% else %}
+
+        <div class="empty">
+
+            <div class="empty-icon">
+                🌷
+            </div>
+
+            <h3>
+                No vacant classrooms
+            </h3>
+
+            <p>
+                Try another day or period.
+            </p>
 
         </div>
 
         {% endif %}
 
+    </section>
+
+    {% endif %}
 
 
-        <!-- Footer -->
+    <!-- FOOTER -->
 
-        <div class="footer">
+    <footer>
 
-            IILM University • Vacant Classroom Finder
+        <strong>IILM University</strong>
+        · Vacant Classroom Finder
 
-        </div>
+        <br><br>
 
+        Built by <strong>Sakshi K</strong> 🎀
 
-    </div>
+    </footer>
 
 
 </body>
