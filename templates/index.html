@@ -2,18 +2,22 @@
 <html lang="en">
 
 <head>
-
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>IILM Vacant Classroom Finder 🎀</title>
 
     <style>
-
+        /* =========================
+           RESET
+        ========================= */
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
         }
 
         body {
@@ -22,146 +26,234 @@
             color: #4a2637;
             min-height: 100vh;
             overflow-x: hidden;
+            transition: background 0.35s ease, color 0.35s ease;
         }
 
-
-        /* ================= CUTE BACKGROUND ================= */
+        /* =========================
+           STUDY DECORATIONS
+        ========================= */
 
         body::before {
-            content: "✿";
+            content: "📚";
             position: fixed;
-            top: 100px;
-            left: 5%;
-            font-size: 80px;
-            color: #fbcfe8;
-            opacity: 0.45;
+            top: 125px;
+            left: 4%;
+            font-size: 38px;
+            opacity: 0.18;
             z-index: -1;
-            transform: rotate(-15deg);
+            animation: studyFloat 5s ease-in-out infinite;
         }
 
         body::after {
-            content: "♡";
+            content: "✏️";
             position: fixed;
-            right: 6%;
-            bottom: 120px;
-            font-size: 100px;
-            color: #e9d5ff;
-            opacity: 0.45;
+            right: 5%;
+            bottom: 150px;
+            font-size: 35px;
+            opacity: 0.18;
             z-index: -1;
-            transform: rotate(15deg);
+            animation: studyFloat 6s ease-in-out infinite reverse;
         }
 
+        @keyframes studyFloat {
+            0%, 100% {
+                transform: translateY(0) rotate(-3deg);
+            }
 
-        /* ================= HEADER ================= */
+            50% {
+                transform: translateY(-8px) rotate(3deg);
+            }
+        }
+
+        /* =========================
+           ANIMATIONS
+        ========================= */
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(22px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes popIn {
+            from {
+                opacity: 0;
+                transform: scale(0.88);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes wiggle {
+            0%, 100% {
+                transform: rotate(0deg);
+            }
+
+            25% {
+                transform: rotate(-4deg);
+            }
+
+            75% {
+                transform: rotate(4deg);
+            }
+        }
+
+        @keyframes sparkle {
+            0%, 100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.18);
+            }
+        }
+
+        @keyframes livePulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(187, 247, 208, 0.7);
+            }
+
+            70% {
+                box-shadow: 0 0 0 8px rgba(187, 247, 208, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(187, 247, 208, 0);
+            }
+        }
+
+        /* =========================
+           HEADER
+        ========================= */
 
         header {
-            background: linear-gradient(
-                135deg,
-                #ec4899,
-                #f472b6,
-                #c084fc
-            );
+            background:
+                linear-gradient(
+                    135deg,
+                    #ec4899,
+                    #f472b6,
+                    #c084fc
+                );
 
             color: white;
-
-            padding: 22px 7%;
-
+            padding: 17px 7%;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
 
             box-shadow:
-                0 5px 20px rgba(236, 72, 153, 0.20);
+                0 6px 25px
+                rgba(236, 72, 153, 0.20);
         }
 
         .logo {
             font-size: 21px;
-            font-weight: bold;
+            font-weight: 800;
+            letter-spacing: -0.3px;
         }
 
-        .live-status {
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
 
+        /* =========================
+           LIVE STATUS
+        ========================= */
+
+        .live-status {
             display: flex;
             align-items: center;
             gap: 8px;
-
             font-size: 13px;
-
-            background: rgba(255,255,255,0.20);
-
+            background: rgba(255, 255, 255, 0.20);
             padding: 8px 14px;
-
-            border-radius: 20px;
+            border-radius: 50px;
+            backdrop-filter: blur(5px);
         }
 
         .live-dot {
-
             width: 9px;
             height: 9px;
-
             background: #bbf7d0;
-
             border-radius: 50%;
-
-            box-shadow:
-                0 0 10px #bbf7d0;
+            animation: livePulse 1.7s infinite;
         }
 
+        /* =========================
+           THEME BUTTON
+        ========================= */
 
-        /* ================= HERO ================= */
+        .theme-toggle {
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            background: rgba(255, 255, 255, 0.18);
+            color: white;
+            width: 42px;
+            height: 42px;
+            padding: 0;
+            border-radius: 50%;
+            font-size: 19px;
+            cursor: pointer;
+            box-shadow: none;
+            transition: 0.25s;
+        }
+
+        .theme-toggle:hover {
+            transform: rotate(12deg) scale(1.08);
+            background: rgba(255, 255, 255, 0.30);
+        }
+
+        /* =========================
+           HERO
+        ========================= */
 
         .hero {
-
             text-align: center;
-
-            padding: 65px 20px 45px;
-
+            padding: 72px 20px 48px;
             position: relative;
+            animation: fadeUp 0.7s ease;
         }
 
         .hero::before {
-
-            content: "🎀";
-
+            content: "📝";
             position: absolute;
-
-            top: 20px;
+            top: 24px;
             left: 18%;
-
             font-size: 30px;
-
-            transform: rotate(-15deg);
+            animation: wiggle 2.5s ease-in-out infinite;
         }
 
         .hero::after {
-
-            content: "♡";
-
+            content: "📖";
             position: absolute;
-
             top: 35px;
             right: 18%;
-
-            font-size: 38px;
-
-            color: #f9a8d4;
-
-            transform: rotate(15deg);
+            font-size: 30px;
+            animation: studyFloat 3.5s ease-in-out infinite;
         }
 
         .hero h1 {
-
             font-size: clamp(38px, 5vw, 58px);
-
             line-height: 1.1;
-
             margin-bottom: 18px;
-
             color: #4a2637;
+            letter-spacing: -1.5px;
         }
 
         .hero h1 span {
-
             background:
                 linear-gradient(
                     90deg,
@@ -170,143 +262,114 @@
                 );
 
             -webkit-background-clip: text;
-
             -webkit-text-fill-color: transparent;
         }
 
         .hero p {
-
             color: #8b6476;
-
             font-size: 17px;
-
             max-width: 650px;
-
             margin: auto;
-
             line-height: 1.7;
         }
 
-
-        /* ================= SEARCH CARD ================= */
+        /* =========================
+           SEARCH SECTION
+        ========================= */
 
         .search-container {
-
             width: min(900px, 92%);
-
             margin: 0 auto 55px;
+            animation: fadeUp 0.85s ease;
         }
 
         .search-card {
-
             background: white;
-
-            border-radius: 26px;
-
+            border-radius: 28px;
             padding: 32px;
-
             border: 2px solid #fbcfe8;
 
             box-shadow:
-                0 15px 40px rgba(236,72,153,0.10);
+                0 18px 45px
+                rgba(236, 72, 153, 0.10);
+
+            transition:
+                background 0.35s ease,
+                border 0.35s ease,
+                box-shadow 0.35s ease;
         }
 
         .search-title {
-
             font-size: 20px;
-
-            font-weight: bold;
-
+            font-weight: 800;
             margin-bottom: 23px;
-
             color: #6b304c;
 
             display: flex;
-
             align-items: center;
-
             gap: 8px;
         }
 
         .search-title::before {
-            content: "🌸";
+            content: "✨";
         }
 
         .form-row {
-
             display: grid;
-
-            grid-template-columns:
-                1fr 1fr auto;
-
+            grid-template-columns: 1fr 1fr auto;
             gap: 15px;
-
             align-items: end;
         }
 
         .field {
-
             display: flex;
-
             flex-direction: column;
-
             gap: 8px;
         }
 
         label {
-
-            font-size: 13px;
-
-            font-weight: bold;
-
+            font-size: 12px;
+            font-weight: 800;
             color: #8b6476;
+            letter-spacing: 0.5px;
         }
 
         select {
-
             width: 100%;
-
-            padding: 14px 15px;
+            padding: 15px;
+            min-height: 50px;
 
             border: 1px solid #f3b6d2;
-
-            border-radius: 13px;
+            border-radius: 14px;
 
             font-size: 15px;
-
             background: #fff8fb;
-
             color: #4a2637;
 
             outline: none;
-
             cursor: pointer;
-
             transition: 0.2s;
         }
 
         select:hover {
-
             border-color: #f472b6;
-
             background: #fff1f7;
         }
 
         select:focus {
-
             border-color: #ec4899;
-
             background: white;
 
             box-shadow:
-                0 0 0 3px rgba(236,72,153,0.10);
+                0 0 0 4px
+                rgba(236, 72, 153, 0.10);
         }
 
-
-        /* ================= BUTTON ================= */
+        /* =========================
+           BUTTON
+        ========================= */
 
         button {
-
             border: none;
 
             background:
@@ -317,94 +380,81 @@
                 );
 
             color: white;
-
             padding: 14px 23px;
-
-            border-radius: 13px;
+            min-height: 50px;
+            border-radius: 14px;
 
             font-size: 15px;
-
-            font-weight: bold;
+            font-weight: 800;
 
             cursor: pointer;
-
             transition: 0.25s;
-
             white-space: nowrap;
 
             box-shadow:
-                0 7px 18px rgba(236,72,153,0.25);
+                0 8px 20px
+                rgba(236, 72, 153, 0.25);
         }
 
         button:hover {
-
-            transform: translateY(-3px) rotate(-1deg);
+            transform:
+                translateY(-3px)
+                rotate(-1deg);
 
             box-shadow:
-                0 12px 25px rgba(236,72,153,0.32);
+                0 13px 28px
+                rgba(236, 72, 153, 0.32);
         }
 
+        button:active {
+            transform: scale(0.96);
+        }
 
-        /* ================= RESULTS ================= */
+        /* =========================
+           RESULTS
+        ========================= */
 
         .results {
-
             width: min(1100px, 92%);
-
-            margin: 0 auto 70px;
+            margin: 0 auto 75px;
+            animation: fadeUp 0.65s ease;
         }
 
         .result-header {
-
             display: flex;
-
             justify-content: space-between;
-
             align-items: center;
-
-            margin-bottom: 22px;
-
+            margin-bottom: 23px;
             gap: 15px;
         }
 
         .result-header h2 {
-
-            font-size: 25px;
-
+            font-size: 26px;
             color: #57283e;
         }
 
         .result-info {
-
             color: #9b7184;
-
             font-size: 14px;
-
-            margin-top: 5px;
+            margin-top: 6px;
         }
 
         .count {
-
             background: #fce7f3;
-
             color: #be185d;
-
             padding: 9px 15px;
-
-            border-radius: 20px;
-
+            border-radius: 50px;
             font-size: 14px;
-
-            font-weight: bold;
-
+            font-weight: 800;
             border: 1px solid #fbcfe8;
+            white-space: nowrap;
         }
 
-
-        /* ================= ROOM CARDS ================= */
+        /* =========================
+           ROOM GRID
+        ========================= */
 
         .rooms {
-
             display: grid;
 
             grid-template-columns:
@@ -417,129 +467,103 @@
         }
 
         .room {
-
             background: white;
-
             border: 1px solid #f9c6dd;
+            border-radius: 21px;
 
-            border-radius: 20px;
-
-            padding: 23px;
+            padding: 23px 15px;
 
             text-align: center;
 
             font-size: 17px;
-
-            font-weight: bold;
-
+            font-weight: 800;
             color: #6b304c;
 
             box-shadow:
-                0 6px 18px rgba(236,72,153,0.07);
+                0 7px 20px
+                rgba(236, 72, 153, 0.07);
 
-            transition: 0.25s;
+            transition:
+                transform 0.25s,
+                background 0.3s,
+                border 0.3s,
+                box-shadow 0.3s;
 
             position: relative;
+
+            animation:
+                popIn 0.45s ease both;
         }
 
         .room:hover {
-
             transform:
-                translateY(-6px)
+                translateY(-7px)
                 rotate(1deg);
 
             border-color: #f472b6;
 
             box-shadow:
-                0 12px 28px rgba(236,72,153,0.15);
+                0 15px 30px
+                rgba(236, 72, 153, 0.15);
 
             background: #fff8fb;
         }
 
-        .room::after {
-
-            content: "♡";
-
-            position: absolute;
-
-            top: 9px;
-
-            right: 12px;
-
-            color: #f9a8d4;
-
-            font-size: 15px;
-        }
+        /* =========================
+           ROOM ICON
+           No square block
+        ========================= */
 
         .room-icon {
+            margin: 0 auto 9px;
+            text-align: center;
+            font-size: 30px;
+            line-height: 1;
 
-            width: 52px;
-
-            height: 52px;
-
-            margin: 0 auto 10px;
-
-            display: flex;
-
-            align-items: center;
-
-            justify-content: center;
-
-            border-radius: 16px;
-
-            background:
-                linear-gradient(
-                    135deg,
-                    #fce7f3,
-                    #f3e8ff
-                );
-
-            font-size: 26px;
+            animation:
+                studyFloat 3.5s ease-in-out infinite;
         }
 
-
-        /* ================= EMPTY STATE ================= */
+        /* =========================
+           EMPTY STATE
+        ========================= */
 
         .empty {
-
             text-align: center;
-
-            padding: 55px 20px;
+            padding: 60px 20px;
 
             background: white;
-
-            border-radius: 22px;
+            border-radius: 23px;
 
             border: 1px solid #fbcfe8;
 
             box-shadow:
-                0 8px 25px rgba(236,72,153,0.06);
+                0 9px 25px
+                rgba(236, 72, 153, 0.06);
         }
 
         .empty-icon {
+            font-size: 48px;
+            margin-bottom: 13px;
 
-            font-size: 45px;
-
-            margin-bottom: 12px;
+            animation:
+                studyFloat 3s ease-in-out infinite;
         }
 
         .empty h3 {
-
             margin-bottom: 8px;
-
             color: #6b304c;
         }
 
         .empty p {
-
             color: #9b7184;
         }
 
-
-        /* ================= FOOTER ================= */
+        /* =========================
+           FOOTER
+        ========================= */
 
         footer {
-
             background:
                 linear-gradient(
                     135deg,
@@ -548,107 +572,307 @@
                 );
 
             color: #fbcfe8;
-
             text-align: center;
 
             padding: 30px;
-
             font-size: 13px;
-
             line-height: 1.8;
         }
 
         footer strong {
-
             color: white;
         }
 
+        /* =================================================
+           DARK MODE
+        ================================================= */
 
-        /* ================= MOBILE ================= */
+        body.dark {
+            background: #211521;
+            color: #fce7f3;
+        }
+
+        body.dark .hero h1 {
+            color: #fce7f3;
+        }
+
+        body.dark .hero p {
+            color: #d5a7be;
+        }
+
+        body.dark .search-card {
+            background: #2d1b2b;
+            border-color: #74365a;
+
+            box-shadow:
+                0 18px 45px
+                rgba(0, 0, 0, 0.30);
+        }
+
+        body.dark .search-title {
+            color: #f9a8d4;
+        }
+
+        body.dark label {
+            color: #d5a7be;
+        }
+
+        body.dark select {
+            background: #241824;
+            color: #fce7f3;
+            border-color: #74365a;
+        }
+
+        body.dark select:hover {
+            background: #321d2e;
+            border-color: #ec4899;
+        }
+
+        body.dark select:focus {
+            background: #321d2e;
+        }
+
+        body.dark .result-header h2 {
+            color: #fce7f3;
+        }
+
+        body.dark .result-info {
+            color: #c994b0;
+        }
+
+        body.dark .count {
+            background: #54203f;
+            color: #f9a8d4;
+            border-color: #8b3d68;
+        }
+
+        body.dark .room {
+            background: #2d1b2b;
+            border-color: #703458;
+            color: #f9c6dd;
+
+            box-shadow:
+                0 8px 20px
+                rgba(0, 0, 0, 0.22);
+        }
+
+        body.dark .room:hover {
+            background: #382036;
+            border-color: #ec4899;
+
+            box-shadow:
+                0 14px 30px
+                rgba(236, 72, 153, 0.20);
+        }
+
+        body.dark .empty {
+            background: #2d1b2b;
+            border-color: #703458;
+        }
+
+        body.dark .empty h3 {
+            color: #f9c6dd;
+        }
+
+        body.dark .empty p {
+            color: #c994b0;
+        }
+
+        body.dark footer {
+            background:
+                linear-gradient(
+                    135deg,
+                    #180f18,
+                    #301526
+                );
+        }
+
+        /* =================================================
+           MOBILE
+        ================================================= */
 
         @media (max-width: 700px) {
 
             header {
-
-                padding: 18px 5%;
+                padding: 13px 5%;
             }
 
             .logo {
+                font-size: 16px;
+            }
 
-                font-size: 17px;
+            .header-right {
+                gap: 7px;
             }
 
             .live-status {
+                font-size: 0;
+                width: 34px;
+                height: 34px;
+                padding: 0;
+                justify-content: center;
+            }
 
-                font-size: 11px;
+            .live-dot {
+                width: 8px;
+                height: 8px;
+            }
+
+            .theme-toggle {
+                width: 38px;
+                height: 38px;
+                font-size: 17px;
             }
 
             .hero {
-
-                padding: 50px 20px 35px;
+                padding: 55px 20px 38px;
             }
 
-            .hero::before {
-
-                left: 8%;
-            }
-
-            .hero::after {
-
-                right: 8%;
+            .hero h1 {
+                font-size: 36px;
+                letter-spacing: -1px;
             }
 
             .hero p {
-
                 font-size: 15px;
+                line-height: 1.6;
+            }
+
+            .hero::before {
+                left: 7%;
+                font-size: 22px;
+            }
+
+            .hero::after {
+                right: 7%;
+                font-size: 23px;
+            }
+
+            .search-container {
+                width: 92%;
+                margin-bottom: 45px;
             }
 
             .search-card {
+                padding: 23px 18px;
+                border-radius: 23px;
+            }
 
-                padding: 22px;
+            .search-title {
+                font-size: 18px;
             }
 
             .form-row {
-
                 grid-template-columns: 1fr;
+                gap: 14px;
+            }
+
+            select {
+                min-height: 52px;
+                font-size: 16px;
             }
 
             button {
-
                 width: 100%;
+                min-height: 53px;
+                font-size: 16px;
+                margin-top: 2px;
+            }
+
+            .results {
+                width: 92%;
+                margin-bottom: 55px;
             }
 
             .result-header {
-
                 flex-direction: column;
-
                 align-items: flex-start;
+                gap: 11px;
+            }
+
+            .result-header h2 {
+                font-size: 22px;
+            }
+
+            .result-info {
+                font-size: 13px;
+                line-height: 1.5;
+            }
+
+            .count {
+                font-size: 13px;
+                padding: 8px 13px;
             }
 
             .rooms {
-
-                grid-template-columns:
-                    repeat(2, 1fr);
+                grid-template-columns: repeat(2, 1fr);
+                gap: 11px;
             }
 
             .room {
+                padding: 18px 7px;
+                font-size: 14px;
+                border-radius: 17px;
+            }
 
-                padding: 20px 10px;
+            .room-icon {
+                font-size: 25px;
+                margin-bottom: 8px;
+            }
 
+            .empty-icon {
+                font-size: 42px;
+            }
+
+            footer {
+                padding: 25px 15px;
+                font-size: 12px;
+            }
+
+            body::before {
+                left: 3%;
+                top: 105px;
+                font-size: 28px;
+            }
+
+            body::after {
+                right: 3%;
+                bottom: 110px;
+                font-size: 27px;
+            }
+        }
+
+        /* =========================
+           SMALL PHONES
+        ========================= */
+
+        @media (max-width: 380px) {
+
+            .logo {
                 font-size: 14px;
             }
 
+            .hero h1 {
+                font-size: 31px;
+            }
+
+            .room {
+                font-size: 13px;
+            }
+
+            .room-icon {
+                font-size: 23px;
+            }
         }
-
     </style>
-
 </head>
 
 
 <body>
 
-
-    <!-- HEADER -->
+    <!-- =========================
+         HEADER
+    ========================== -->
 
     <header>
 
@@ -656,34 +880,51 @@
             🎀 IILM University
         </div>
 
-        <div class="live-status">
+        <div class="header-right">
 
-            <span class="live-dot"></span>
+            <div class="live-status">
+                <span class="live-dot"></span>
+                <span>Live Timetable</span>
+            </div>
 
-            Live Timetable
+            <button
+                class="theme-toggle"
+                id="themeToggle"
+                onclick="toggleTheme()"
+                aria-label="Toggle dark mode"
+            >
+                🌙
+            </button>
 
         </div>
 
     </header>
 
 
-    <!-- HERO -->
+    <!-- =========================
+         HERO
+    ========================== -->
 
     <section class="hero">
 
         <h1>
-            Find an <span>Empty Classroom</span> 🎀
+            Find an
+            <span>Empty Classroom</span>
+            📚
         </h1>
 
         <p>
-            Quickly find available classrooms at IILM University
-            based on the day and period you need.
+            Quickly find available classrooms
+            at IILM University based on the
+            day and period you need. ✨
         </p>
 
     </section>
 
 
-    <!-- SEARCH -->
+    <!-- =========================
+         SEARCH
+    ========================== -->
 
     <div class="search-container">
 
@@ -693,11 +934,9 @@
                 Check Classroom Availability
             </div>
 
-
             <form method="POST">
 
                 <div class="form-row">
-
 
                     <!-- DAY -->
 
@@ -717,33 +956,45 @@
                                 Select day
                             </option>
 
-                            <option value="monday"
-                                {% if selected_day == "monday" %}selected{% endif %}>
+                            <option
+                                value="monday"
+                                {% if selected_day == "monday" %}selected{% endif %}
+                            >
                                 Monday
                             </option>
 
-                            <option value="tuesday"
-                                {% if selected_day == "tuesday" %}selected{% endif %}>
+                            <option
+                                value="tuesday"
+                                {% if selected_day == "tuesday" %}selected{% endif %}
+                            >
                                 Tuesday
                             </option>
 
-                            <option value="wednesday"
-                                {% if selected_day == "wednesday" %}selected{% endif %}>
+                            <option
+                                value="wednesday"
+                                {% if selected_day == "wednesday" %}selected{% endif %}
+                            >
                                 Wednesday
                             </option>
 
-                            <option value="thursday"
-                                {% if selected_day == "thursday" %}selected{% endif %}>
+                            <option
+                                value="thursday"
+                                {% if selected_day == "thursday" %}selected{% endif %}
+                            >
                                 Thursday
                             </option>
 
-                            <option value="friday"
-                                {% if selected_day == "friday" %}selected{% endif %}>
+                            <option
+                                value="friday"
+                                {% if selected_day == "friday" %}selected{% endif %}
+                            >
                                 Friday
                             </option>
 
-                            <option value="saturday"
-                                {% if selected_day == "saturday" %}selected{% endif %}>
+                            <option
+                                value="saturday"
+                                {% if selected_day == "saturday" %}selected{% endif %}
+                            >
                                 Saturday
                             </option>
 
@@ -770,48 +1021,66 @@
                                 Select period
                             </option>
 
-                            <option value="1"
-                                {% if selected_period == "1" %}selected{% endif %}>
+                            <option
+                                value="1"
+                                {% if selected_period == "1" %}selected{% endif %}
+                            >
                                 Period 1 — 09:00–09:55
                             </option>
 
-                            <option value="2"
-                                {% if selected_period == "2" %}selected{% endif %}>
+                            <option
+                                value="2"
+                                {% if selected_period == "2" %}selected{% endif %}
+                            >
                                 Period 2 — 09:55–10:50
                             </option>
 
-                            <option value="3"
-                                {% if selected_period == "3" %}selected{% endif %}>
+                            <option
+                                value="3"
+                                {% if selected_period == "3" %}selected{% endif %}
+                            >
                                 Period 3 — 10:50–11:45
                             </option>
 
-                            <option value="4"
-                                {% if selected_period == "4" %}selected{% endif %}>
+                            <option
+                                value="4"
+                                {% if selected_period == "4" %}selected{% endif %}
+                            >
                                 Period 4 — 11:45–12:40
                             </option>
 
-                            <option value="5"
-                                {% if selected_period == "5" %}selected{% endif %}>
+                            <option
+                                value="5"
+                                {% if selected_period == "5" %}selected{% endif %}
+                            >
                                 Period 5 — 12:40–13:35
                             </option>
 
-                            <option value="6"
-                                {% if selected_period == "6" %}selected{% endif %}>
+                            <option
+                                value="6"
+                                {% if selected_period == "6" %}selected{% endif %}
+                            >
                                 Period 6 — 13:35–14:30
                             </option>
 
-                            <option value="7"
-                                {% if selected_period == "7" %}selected{% endif %}>
+                            <option
+                                value="7"
+                                {% if selected_period == "7" %}selected{% endif %}
+                            >
                                 Period 7 — 14:30–15:25
                             </option>
 
-                            <option value="8"
-                                {% if selected_period == "8" %}selected{% endif %}>
+                            <option
+                                value="8"
+                                {% if selected_period == "8" %}selected{% endif %}
+                            >
                                 Period 8 — 15:25–16:20
                             </option>
 
-                            <option value="9"
-                                {% if selected_period == "9" %}selected{% endif %}>
+                            <option
+                                value="9"
+                                {% if selected_period == "9" %}selected{% endif %}
+                            >
                                 Period 9 — 16:20–17:15
                             </option>
 
@@ -823,7 +1092,7 @@
                     <!-- BUTTON -->
 
                     <button type="submit">
-                        Find Rooms 💗
+                        Find Rooms ✨
                     </button>
 
                 </div>
@@ -835,7 +1104,9 @@
     </div>
 
 
-    <!-- RESULTS -->
+    <!-- =========================
+         RESULTS
+    ========================== -->
 
     {% if selected_day %}
 
@@ -846,7 +1117,7 @@
             <div>
 
                 <h2>
-                    🌸 Available Classrooms
+                    📚 Available Classrooms
                 </h2>
 
                 <p class="result-info">
@@ -861,10 +1132,10 @@
 
             </div>
 
-
             <div class="count">
 
                 {{ vacant_rooms|length }}
+
                 rooms available
 
             </div>
@@ -881,7 +1152,17 @@
             <div class="room">
 
                 <div class="room-icon">
-                    🏫
+
+                    {% if loop.index % 4 == 1 %}
+                        📚
+                    {% elif loop.index % 4 == 2 %}
+                        ✏️
+                    {% elif loop.index % 4 == 3 %}
+                        📝
+                    {% else %}
+                        📖
+                    {% endif %}
+
                 </div>
 
                 {{ room }}
@@ -898,7 +1179,7 @@
         <div class="empty">
 
             <div class="empty-icon">
-                🌷
+                📖
             </div>
 
             <h3>
@@ -918,19 +1199,81 @@
     {% endif %}
 
 
-    <!-- FOOTER -->
+    <!-- =========================
+         FOOTER
+    ========================== -->
 
     <footer>
 
-        <strong>IILM University</strong>
+        <strong>
+            IILM University
+        </strong>
+
         · Vacant Classroom Finder
 
         <br><br>
 
-        Built by <strong>Sakshi K</strong> 🎀
+        Built by
+
+        <strong>
+            Sakshi K
+        </strong>
+
+        🎀
 
     </footer>
 
+
+    <!-- =========================
+         DARK MODE SCRIPT
+    ========================== -->
+
+    <script>
+
+        function toggleTheme() {
+
+            document.body.classList.toggle("dark");
+
+            const button =
+                document.getElementById("themeToggle");
+
+            if (
+                document.body.classList.contains("dark")
+            ) {
+
+                button.textContent = "☀️";
+
+                localStorage.setItem(
+                    "theme",
+                    "dark"
+                );
+
+            } else {
+
+                button.textContent = "🌙";
+
+                localStorage.setItem(
+                    "theme",
+                    "light"
+                );
+            }
+        }
+
+
+        /* Remember theme after refresh */
+
+        if (
+            localStorage.getItem("theme") === "dark"
+        ) {
+
+            document.body.classList.add("dark");
+
+            document.getElementById(
+                "themeToggle"
+            ).textContent = "☀️";
+        }
+
+    </script>
 
 </body>
 
