@@ -7,7 +7,6 @@ import requests
 from flask import Flask, render_template, request
 
 from pdf_timetable import parse_pdf_bytes, parse_pdf_file
-from data.bba.excel_timetable import parse_excel_file
 
 app = Flask(__name__)
 
@@ -25,7 +24,6 @@ EDUPAGE_ARGS = {
     "__args": [None, "37"],
     "__gsh": "00000000",
 }
-
 
 # Separate department PDF timetables.
 DEFAULT_PDF_FILES = [
@@ -66,29 +64,12 @@ PDF_URLS = _csv_env(
     "PDF_TIMETABLE_URLS"
 )
 
-
-# Excel timetable files.
-DEFAULT_EXCEL_FILES = [
-    os.path.join(
-        "data",
-        "bba",
-        "BBA Odd Sem .xlsx",
-    ),
-]
-
-EXCEL_FILES = (
-    _csv_env("EXCEL_TIMETABLE_FILES")
-    or DEFAULT_EXCEL_FILES
-)
-
-
 CACHE_DURATION = 600
 
 timetable_cache = None
 cache_time = 0.0
 
 pdf_cache: tuple[float, list[dict]] | None = None
-excel_cache: tuple[float, list[dict]] | None = None
 
 
 # ---------------------------------------------------------------------------
@@ -189,57 +170,6 @@ def get_pdf_records() -> list[dict]:
     records = _load_pdf_sources()
 
     pdf_cache = (
-        current_time,
-        records,
-    )
-
-    return records
-
-
-# ---------------------------------------------------------------------------
-# Excel timetables
-# ---------------------------------------------------------------------------
-
-def _load_excel_sources() -> list[dict]:
-    records: list[dict] = []
-
-    for path in EXCEL_FILES:
-        try:
-            records.extend(
-                parse_excel_file(path)
-            )
-
-        except FileNotFoundError:
-            app.logger.warning(
-                "Excel timetable file not found: %s",
-                path,
-            )
-
-        except Exception as exc:
-            app.logger.exception(
-                "Could not parse Excel timetable %s: %s",
-                path,
-                exc,
-            )
-
-    return records
-
-
-def get_excel_records() -> list[dict]:
-    global excel_cache
-
-    current_time = time.time()
-
-    if (
-        excel_cache is not None
-        and current_time - excel_cache[0]
-        < CACHE_DURATION
-    ):
-        return excel_cache[1]
-
-    records = _load_excel_sources()
-
-    excel_cache = (
         current_time,
         records,
     )
@@ -443,18 +373,6 @@ def home():
     }
 
     # ---------------------------------------------------------------
-    # Load Excel timetables
-    # ---------------------------------------------------------------
-
-    excel_records = get_excel_records()
-
-    excel_rooms = {
-        record["room"]
-        for record in excel_records
-        if record.get("room")
-    }
-
-    # ---------------------------------------------------------------
     # User submits day + period
     # ---------------------------------------------------------------
 
@@ -496,13 +414,12 @@ def home():
         )
 
         # -----------------------------------------------------------
-        # Combine ALL room sources
+        # Combine EduPage + PDF rooms
         # -----------------------------------------------------------
 
         all_rooms = (
             edupage_rooms
             | pdf_rooms
-            | excel_rooms
         )
 
         occupied_rooms = set(
@@ -514,28 +431,6 @@ def home():
         # -----------------------------------------------------------
 
         for record in pdf_records:
-
-            if (
-                record.get("day")
-                == selected_day
-                and record.get("period")
-                == selected_period_int
-            ):
-
-                room = record.get(
-                    "room"
-                )
-
-                if room:
-                    occupied_rooms.add(
-                        room
-                    )
-
-        # -----------------------------------------------------------
-        # Excel occupancy
-        # -----------------------------------------------------------
-
-        for record in excel_records:
 
             if (
                 record.get("day")
