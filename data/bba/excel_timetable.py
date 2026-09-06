@@ -10,15 +10,16 @@ import openpyxl
 
 
 # Excel teaching-period columns.
-# Column G is the lunch break and is intentionally skipped.
+# Column G is lunch and is intentionally skipped.
 PERIOD_COLUMNS = {
-    4: 1,  # 9:00 - 10:15
-    5: 2,  # 10:20 - 11:35
-    6: 3,  # 11:40 - 12:55
-    8: 4,  # 1:40 - 2:55
-    9: 5,  # 3:00 - 4:15
+    4: 1,   # 9:00 - 10:15
+    5: 2,   # 10:20 - 11:35
+    6: 3,   # 11:40 - 12:55
+    8: 4,   # 1:40 - 2:55
+    9: 5,   # 3:00 - 4:15
     10: 6,  # 4:20 - 5:35
 }
+
 
 DAY_MAP = {
     "mon": "monday",
@@ -61,27 +62,52 @@ def _canonical_room(room: str) -> str:
         "food technology lab": "Food Technology Lab",
     }
 
-    return aliases.get(room.lower(), room)
+    return aliases.get(
+        room.lower(),
+        room,
+    )
 
 
 def _room_from_header(sheet) -> str:
-    """Get the default classroom from the sheet title/header."""
+    """
+    Read the default room from the sheet header.
 
-    # Example:
-    # BBA, Semester - I (Section-A), Room No: -206
+    Example:
+        BBA, Semester - I (Section-A), Room No: -206
+
+    Returns:
+        206
+    """
+
     for row in range(1, 5):
-        for col in range(1, 5):
-            value = _clean(sheet.cell(row=row, column=col).value)
+        for col in range(1, 10):
 
+            value = _clean(
+                sheet.cell(
+                    row=row,
+                    column=col,
+                ).value
+            )
+
+            if not value:
+                continue
+
+            # Capture ONLY the room number/name immediately
+            # following "Room No".
+            #
+            # This deliberately stops before any later text.
             match = re.search(
-                r"Room\s*No\s*[:\-]*\s*([A-Za-z0-9 /.-]+)",
+                r"Room\s*No\s*[:\-]*\s*([A-Za-z0-9]+)",
                 value,
                 re.IGNORECASE,
             )
 
             if match:
-                room = match.group(1).strip()
-                return _canonical_room(room)
+                room = match.group(1)
+
+                return _canonical_room(
+                    room
+                )
 
     return ""
 
@@ -90,8 +116,17 @@ def _section_from_header(sheet) -> str:
     """Get the BBA section from the sheet title/header."""
 
     for row in range(1, 5):
-        for col in range(1, 5):
-            value = _clean(sheet.cell(row=row, column=col).value)
+        for col in range(1, 10):
+
+            value = _clean(
+                sheet.cell(
+                    row=row,
+                    column=col,
+                ).value
+            )
+
+            if not value:
+                continue
 
             match = re.search(
                 r"Section\s*[-:]?\s*([A-Za-z0-9]+)",
@@ -105,12 +140,16 @@ def _section_from_header(sheet) -> str:
     return sheet.title
 
 
-def _room_override(note: str, default_room: str) -> str:
+def _room_override(
+    note: str,
+    default_room: str,
+) -> str:
     """
     Handle notes such as:
+
         BE-1 in 303
 
-    The room after 'in' is used as the actual classroom.
+    The room after 'in' becomes the actual classroom.
     """
 
     note = _clean(note)
@@ -119,7 +158,7 @@ def _room_override(note: str, default_room: str) -> str:
         return default_room
 
     match = re.search(
-        r"\bin\s+([A-Za-z0-9][A-Za-z0-9 /.-]*)",
+        r"\bin\s+([A-Za-z0-9]+)",
         note,
         re.IGNORECASE,
     )
@@ -127,21 +166,19 @@ def _room_override(note: str, default_room: str) -> str:
     if match:
         room = match.group(1).strip()
 
-        # Remove accidental trailing words if present.
-        room = re.split(
-            r"\s+(?:for|from|to|on|at)\s+",
-            room,
-            maxsplit=1,
-            flags=re.IGNORECASE,
-        )[0]
-
-        return _canonical_room(room)
+        return _canonical_room(
+            room
+        )
 
     return default_room
 
 
-def parse_excel_file(path: str | Path) -> list[dict]:
-    """Parse a BBA Excel timetable into normalized room records."""
+def parse_excel_file(
+    path: str | Path,
+) -> list[dict]:
+    """
+    Parse a BBA Excel timetable into normalized room records.
+    """
 
     path = Path(path)
 
@@ -153,36 +190,65 @@ def parse_excel_file(path: str | Path) -> list[dict]:
     records: list[dict] = []
 
     for sheet in workbook.worksheets:
-        default_room = _room_from_header(sheet)
-        section = _section_from_header(sheet)
+
+        default_room = _room_from_header(
+            sheet
+        )
+
+        section = _section_from_header(
+            sheet
+        )
 
         if not default_room:
             continue
 
         # Timetable data begins around row 4.
-        for row in range(4, sheet.max_row + 1):
-            day_value = _clean(sheet.cell(row=row, column=2).value)
+        for row in range(
+            4,
+            sheet.max_row + 1,
+        ):
+
+            day_value = _clean(
+                sheet.cell(
+                    row=row,
+                    column=2,
+                ).value
+            )
 
             if not day_value:
                 continue
 
-            day = DAY_MAP.get(day_value.lower())
+            day = DAY_MAP.get(
+                day_value.lower()
+            )
 
             if not day:
                 continue
 
-            for column, period in PERIOD_COLUMNS.items():
+            for (
+                column,
+                period,
+            ) in PERIOD_COLUMNS.items():
+
                 subject = _clean(
-                    sheet.cell(row=row, column=column).value
+                    sheet.cell(
+                        row=row,
+                        column=column,
+                    ).value
                 )
 
-                # Empty cell = no class, so room is free.
+                # Empty timetable cell means
+                # the default room is free.
                 if not subject:
                     continue
 
-                # Column K contains notes/room overrides.
+                # Column K contains notes,
+                # including room changes.
                 note = _clean(
-                    sheet.cell(row=row, column=11).value
+                    sheet.cell(
+                        row=row,
+                        column=11,
+                    ).value
                 )
 
                 room = _room_override(
@@ -206,17 +272,20 @@ def parse_excel_file(path: str | Path) -> list[dict]:
                 )
 
     # Remove exact duplicates.
-    unique = {
-        (
+    unique = {}
+
+    for record in records:
+
+        key = (
             record["day"],
             record["period"],
             record["room"],
             record["section"],
             record["source"],
             record["sheet"],
-        ): record
-        for record in records
-    }
+        )
+
+        unique[key] = record
 
     return sorted(
         unique.values(),
