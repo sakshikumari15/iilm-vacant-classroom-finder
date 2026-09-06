@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+    <title>IILM Vacant Classroom Finder</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background: #f4f6f9;
+            color: #222;
+        }
+
+        /* Header */
+
+        .header {
+            background: #111827;
+            color: white;
+            padding: 25px 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 32px;
+        }
+
+        .header p {
+            margin: 8px 0 0;
+            color: #d1d5db;
+        }
+
+
+        /* Main container */
+
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+
+        /* Search box */
+
+        .search-box {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        }
+
+        .search-box h2 {
+            margin-top: 0;
+            text-align: center;
+        }
+
+
+        .form-row {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            width: 300px;
+        }
+
+
+        label {
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+
+        select {
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 15px;
+            background: white;
+        }
+
+
+        button {
+            display: block;
+            margin: 25px auto 0;
+            padding: 13px 28px;
+            border: none;
+            border-radius: 8px;
+            background: #111827;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+
+        button:hover {
+            background: #374151;
+        }
+
+
+        /* Results */
+
+        .result {
+            margin-top: 30px;
+        }
+
+
+        .result-header {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            text-align: center;
+        }
+
+
+        .result-header h2 {
+            margin: 0 0 10px;
+        }
+
+
+        .time {
+            color: #666;
+        }
+
+
+        .count {
+            font-size: 28px;
+            font-weight: bold;
+            margin: 15px 0 0;
+        }
+
+
+        /* Classroom grid */
+
+        .rooms {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+
+        .room {
+            background: #eaf8ee;
+            color: #176b32;
+            padding: 18px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: bold;
+            border: 1px solid #ccebd5;
+        }
+
+
+        /* Footer */
+
+        .footer {
+            text-align: center;
+            color: #777;
+            margin: 40px 0 20px;
+            font-size: 14px;
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+    <!-- Header -->
+
+    <div class="header">
+
+        <h1>🏫 IILM Vacant Classroom Finder</h1>
+
+        <p>
+            Find available classrooms at IILM University
+        </p>
+
+    </div>
+
+
+
+    <div class="container">
+
+
+        <!-- Search -->
+
+        <div class="search-box">
+
+            <h2>Find an Available Classroom</h2>
+
+
+            <form method="POST">
+
+                <div class="form-row">
+
+
+                    <!-- Day -->
+
+                    <div class="form-group">
+
+                        <label>Select Day</label>
+
+                        <select name="day">
+
+                            <option value="monday">Monday</option>
+                            <option value="tuesday">Tuesday</option>
+                            <option value="wednesday">Wednesday</option>
+                            <option value="thursday">Thursday</option>
+                            <option value="friday">Friday</option>
+                            <option value="saturday">Saturday</option>
+
+                        </select>
+
+                    </div>
+
+
+
+                    <!-- Period -->
+
+                    <div class="form-group">
+
+                        <label>Select Period</label>
+
+                        <select name="period">
+
+                            <option value="1">
+                                Period 1 — 09:00–09:55
+                            </option>
+
+                            <option value="2">
+                                Period 2 — 09:55–10:50
+                            </option>
+
+                            <option value="3">
+                                Period 3 — 10:50–11:45
+                            </option>
+
+                            <option value="4">
+                                Period 4 — 11:45–12:40
+                            </option>
+
+                            <option value="5">
+                                Period 5 — 12:40–13:35
+                            </option>
+
+                            <option value="6">
+                                Period 6 — 13:35–14:30
+                            </option>
+
+                            <option value="7">
+                                Period 7 — 14:30–15:25
+                            </option>
+
+                            <option value="8">
+                                Period 8 — 15:25–16:20
+                            </option>
+
+                            <option value="9">
+                                Period 9 — 16:20–17:15
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                </div>
+
+
+                <button type="submit">
+                    🔍 Find Vacant Classrooms
+                </button>
+
+            </form>
+
+        </div>
+
+
+
+        <!-- Results -->
+
+        {% if selected_day %}
+
+        <div class="result">
+
+
+            <div class="result-header">
+
+                <h2>🟢 Available Classrooms</h2>
+
+                <div class="time">
+
+                    {{ selected_day.capitalize() }}
+                    — Period {{ selected_period }}
+                    — {{ time }}
+
+                </div>
+
+
+                <div class="count">
+
+                    {{ vacant_rooms|length }} classrooms available
+
+                </div>
+
+            </div>
+
+
+
+            <div class="rooms">
+
+                {% for room in vacant_rooms %}
+
+                <div class="room">
+
+                    🟢 {{ room }}
+
+                </div>
+
+                {% endfor %}
+
+            </div>
+
+
+        </div>
+
+        {% endif %}
+
+
+
+        <!-- Footer -->
+
+        <div class="footer">
+
+            IILM University • Vacant Classroom Finder
+
+        </div>
+
+
+    </div>
+
+
+</body>
+
+</html>
