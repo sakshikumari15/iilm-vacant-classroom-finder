@@ -9,14 +9,25 @@ from flask import Flask, render_template, request
 from pdf_timetable import parse_pdf_bytes, parse_pdf_file
 from data.bba.excel_timetable import parse_excel_file
 
-
 app = Flask(__name__)
 
+# ---------------------------------------------------------------------------
+# Timetable sources
+# ---------------------------------------------------------------------------
 
-# ============================================================
-# PDF TIMETABLE FILES
-# ============================================================
+# EduPage remains the live source already used by the original application.
+EDUPAGE_URL = (
+    "https://iilmgn.edupage.org/timetable/server/"
+    "regulartt.js?__func=regularttGetData"
+)
 
+EDUPAGE_ARGS = {
+    "__args": [None, "37"],
+    "__gsh": "00000000",
+}
+
+
+# Separate department PDF timetables.
 DEFAULT_PDF_FILES = [
     os.path.join(
         "data",
@@ -45,18 +56,18 @@ def _csv_env(name: str) -> list[str]:
     ]
 
 
+# Optional environment variables for future branches.
 PDF_FILES = (
     _csv_env("PDF_TIMETABLE_FILES")
     or DEFAULT_PDF_FILES
 )
 
-PDF_URLS = _csv_env("PDF_TIMETABLE_URLS")
+PDF_URLS = _csv_env(
+    "PDF_TIMETABLE_URLS"
+)
 
 
-# ============================================================
-# EXCEL TIMETABLE FILES
-# ============================================================
-
+# Excel timetable files.
 DEFAULT_EXCEL_FILES = [
     os.path.join(
         "data",
@@ -71,10 +82,6 @@ EXCEL_FILES = (
 )
 
 
-# ============================================================
-# CACHE
-# ============================================================
-
 CACHE_DURATION = 600
 
 timetable_cache = None
@@ -84,39 +91,12 @@ pdf_cache: tuple[float, list[dict]] | None = None
 excel_cache: tuple[float, list[dict]] | None = None
 
 
-# ============================================================
-# EDUPAGE
-# ============================================================
-
-EDUPAGE_URL = (
-    "https://iilmgn.edupage.org/"
-    "timetable/server/regulartt.js"
-    "?__func=regularttGetData"
-)
-
-EDUPAGE_PAYLOAD = {
-    "__args": [None, "37"],
-    "__gsh": "00000000",
-}
-
-
-DAY_CODES = {
-    "monday": "100000",
-    "tuesday": "010000",
-    "wednesday": "001000",
-    "thursday": "000100",
-    "friday": "000010",
-    "saturday": "000001",
-}
-
-
-# ============================================================
-# LOAD EDUPAGE DATA
-# ============================================================
+# ---------------------------------------------------------------------------
+# EduPage
+# ---------------------------------------------------------------------------
 
 def get_timetable():
-    global timetable_cache
-    global cache_time
+    global timetable_cache, cache_time
 
     current_time = time.time()
 
@@ -128,8 +108,8 @@ def get_timetable():
 
     response = requests.post(
         EDUPAGE_URL,
-        json=EDUPAGE_PAYLOAD,
-        timeout=30,
+        json=EDUPAGE_ARGS,
+        timeout=15,
     )
 
     response.raise_for_status()
@@ -140,209 +120,35 @@ def get_timetable():
     return timetable_cache
 
 
-# ============================================================
-# EDUPAGE HELPERS
-# ============================================================
-
-def _period_time_from_edupage(
-    data,
-    selected_period,
-):
-    try:
-        periods = data.get("r", {}).get("periods", [])
-
-        period_number = int(selected_period)
-
-        for period in periods:
-            if str(
-                period.get("id")
-            ) == str(period_number):
-
-                start = (
-                    period.get("starttime")
-                    or period.get("start")
-                    or ""
-                )
-
-                end = (
-                    period.get("endtime")
-                    or period.get("end")
-                    or ""
-                )
-
-                if start and end:
-                    return f"{start} - {end}"
-
-    except Exception:
-        pass
-
-    return ""
-
-
-def _edupage_rooms_and_occupied(
-    data,
-    selected_day,
-    selected_period,
-):
-    rooms = set()
-    occupied = set()
-
-    # --------------------------------------------------------
-    # This section keeps the existing EduPage logic flexible.
-    # --------------------------------------------------------
-
-    try:
-        timetable = data.get("r", {})
-
-        # Collect rooms wherever EduPage exposes them.
-        for room in timetable.get("rooms", []):
-            if isinstance(room, dict):
-                name = (
-                    room.get("short")
-                    or room.get("name")
-                    or room.get("id")
-                )
-
-                if name:
-                    rooms.add(str(name))
-
-    except Exception:
-        pass
-
-    # --------------------------------------------------------
-    # Parse lessons.
-    # --------------------------------------------------------
-
-    try:
-        lessons = (
-            data.get("r", {}).get("tt", [])
-        )
-
-        day_code = DAY_CODES.get(
-            selected_day
-        )
-
-        for lesson in lessons:
-
-            if not isinstance(
-                lesson,
-                dict,
-            ):
-                continue
-
-            lesson_day = (
-                lesson.get("day")
-                or lesson.get("days")
-                or lesson.get("daycode")
-            )
-
-            if (
-                day_code
-                and lesson_day
-                and str(lesson_day) != day_code
-                and str(lesson_day) != selected_day
-            ):
-                continue
-
-            period = (
-                lesson.get("period")
-                or lesson.get("periodid")
-                or lesson.get("hour")
-            )
-
-            try:
-                period = int(period)
-            except (
-                TypeError,
-                ValueError,
-            ):
-                continue
-
-            if period != int(
-                selected_period
-            ):
-                continue
-
-            lesson_rooms = (
-                lesson.get("rooms")
-                or lesson.get("room")
-                or []
-            )
-
-            if isinstance(
-                lesson_rooms,
-                str,
-            ):
-                lesson_rooms = [
-                    lesson_rooms
-                ]
-
-            for room in lesson_rooms:
-
-                if isinstance(
-                    room,
-                    dict,
-                ):
-                    room_name = (
-                        room.get("short")
-                        or room.get("name")
-                        or room.get("id")
-                    )
-                else:
-                    room_name = str(room)
-
-                if room_name:
-                    room_name = str(
-                        room_name
-                    ).strip()
-
-                    rooms.add(room_name)
-                    occupied.add(
-                        room_name
-                    )
-
-    except Exception as exc:
-        app.logger.warning(
-            "Could not parse EduPage lessons: %s",
-            exc,
-        )
-
-    return rooms, occupied
-
-
-# ============================================================
-# LOAD PDF TIMETABLES
-# ============================================================
+# ---------------------------------------------------------------------------
+# PDF timetables
+# ---------------------------------------------------------------------------
 
 def _load_pdf_sources() -> list[dict]:
     records: list[dict] = []
 
-    # Local PDFs
+    # Load local PDF files.
     for path in PDF_FILES:
-
         try:
             records.extend(
                 parse_pdf_file(path)
             )
 
         except FileNotFoundError:
-
             app.logger.warning(
                 "PDF timetable file not found: %s",
                 path,
             )
 
         except Exception as exc:
-
             app.logger.exception(
                 "Could not parse PDF timetable %s: %s",
                 path,
                 exc,
             )
 
-    # Optional PDF URLs
+    # Load optional PDF URLs.
     for url in PDF_URLS:
-
         try:
             response = requests.get(
                 url,
@@ -359,7 +165,6 @@ def _load_pdf_sources() -> list[dict]:
             )
 
         except Exception as exc:
-
             app.logger.exception(
                 "Could not download/parse PDF timetable %s: %s",
                 url,
@@ -391,30 +196,26 @@ def get_pdf_records() -> list[dict]:
     return records
 
 
-# ============================================================
-# LOAD EXCEL TIMETABLES
-# ============================================================
+# ---------------------------------------------------------------------------
+# Excel timetables
+# ---------------------------------------------------------------------------
 
 def _load_excel_sources() -> list[dict]:
     records: list[dict] = []
 
     for path in EXCEL_FILES:
-
         try:
-
             records.extend(
                 parse_excel_file(path)
             )
 
         except FileNotFoundError:
-
             app.logger.warning(
                 "Excel timetable file not found: %s",
                 path,
             )
 
         except Exception as exc:
-
             app.logger.exception(
                 "Could not parse Excel timetable %s: %s",
                 path,
@@ -446,9 +247,176 @@ def get_excel_records() -> list[dict]:
     return records
 
 
-# ============================================================
-# HOME
-# ============================================================
+# ---------------------------------------------------------------------------
+# EduPage timetable processing
+# ---------------------------------------------------------------------------
+
+def _extract_edupage_parts(data):
+    tables = data[
+        "r"
+    ][
+        "dbiAccessorRes"
+    ][
+        "tables"
+    ]
+
+    parts = {}
+
+    for table in tables:
+        if table["id"] in {
+            "cards",
+            "classrooms",
+            "periods",
+            "lessons",
+        }:
+            parts[table["id"]] = table
+
+    return parts
+
+
+def _edupage_rooms_and_occupied(
+    data,
+    selected_day: str,
+    selected_period: int,
+):
+    parts = _extract_edupage_parts(data)
+
+    cards = parts.get(
+        "cards",
+        {"data_rows": []},
+    )
+
+    classrooms = parts.get(
+        "classrooms",
+        {"data_rows": []},
+    )
+
+    lessons = parts.get(
+        "lessons",
+        {"data_rows": []},
+    )
+
+    room_names = {
+        room["id"]: room["name"]
+        for room in classrooms["data_rows"]
+        if room.get("name")
+    }
+
+    lesson_duration = {
+        lesson["id"]: lesson.get(
+            "durationperiods",
+            1,
+        )
+        for lesson in lessons["data_rows"]
+    }
+
+    day_codes = {
+        "monday": "100000",
+        "tuesday": "010000",
+        "wednesday": "001000",
+        "thursday": "000100",
+        "friday": "000010",
+        "saturday": "000001",
+    }
+
+    day_code = day_codes[selected_day]
+
+    occupied = set()
+
+    for card in cards["data_rows"]:
+        card_days = card.get(
+            "days",
+            "",
+        )
+
+        if len(card_days) < 6:
+            card_days = card_days.zfill(6)
+
+        if day_code not in card_days:
+            continue
+
+        start_period = int(
+            card.get(
+                "period",
+                0,
+            )
+        )
+
+        duration = lesson_duration.get(
+            card.get("lessonid"),
+            1,
+        )
+
+        if not (
+            start_period
+            <= selected_period
+            < start_period + duration
+        ):
+            continue
+
+        for room_id in card.get(
+            "classroomids",
+            [],
+        ):
+            room = room_names.get(
+                room_id
+            )
+
+            if room:
+                occupied.add(room)
+
+    return (
+        set(room_names.values()),
+        occupied,
+    )
+
+
+def _period_time_from_edupage(
+    data,
+    selected_period: str,
+) -> str:
+
+    parts = _extract_edupage_parts(
+        data
+    )
+
+    for period in parts.get(
+        "periods",
+        {"data_rows": []},
+    )["data_rows"]:
+
+        if str(
+            period.get("id")
+        ) == str(selected_period):
+
+            return (
+                f'{period.get("starttime", "")}'
+                f' - '
+                f'{period.get("endtime", "")}'
+            )
+
+    # Fallback timetable period times.
+    fallback = {
+        "1": "09:00 - 09:55",
+        "2": "09:55 - 10:50",
+        "3": "10:50 - 11:45",
+        "4": "11:45 - 12:40",
+        "5": "12:40 - 13:35",
+        "6": "13:35 - 14:30",
+        "7": "14:30 - 15:25",
+        "8": "15:25 - 16:20",
+        "9": "16:20 - 17:15",
+    }
+
+    return fallback.get(
+        str(selected_period),
+        "Unknown",
+    )
+
+
+# ---------------------------------------------------------------------------
+# Main page
+# ---------------------------------------------------------------------------
 
 @app.route(
     "/",
@@ -462,9 +430,9 @@ def home():
 
     vacant_rooms = []
 
-    # --------------------------------------------------------
-    # Load PDF records
-    # --------------------------------------------------------
+    # ---------------------------------------------------------------
+    # Load department PDFs
+    # ---------------------------------------------------------------
 
     pdf_records = get_pdf_records()
 
@@ -474,9 +442,9 @@ def home():
         if record.get("room")
     }
 
-    # --------------------------------------------------------
-    # Load Excel records
-    # --------------------------------------------------------
+    # ---------------------------------------------------------------
+    # Load Excel timetables
+    # ---------------------------------------------------------------
 
     excel_records = get_excel_records()
 
@@ -486,9 +454,9 @@ def home():
         if record.get("room")
     }
 
-    # --------------------------------------------------------
-    # POST request
-    # --------------------------------------------------------
+    # ---------------------------------------------------------------
+    # User submits day + period
+    # ---------------------------------------------------------------
 
     if request.method == "POST":
 
@@ -505,9 +473,9 @@ def home():
             selected_period
         )
 
-        # ----------------------------------------------------
-        # EduPage
-        # ----------------------------------------------------
+        # -----------------------------------------------------------
+        # EduPage occupancy
+        # -----------------------------------------------------------
 
         data = get_timetable()
 
@@ -527,9 +495,9 @@ def home():
             )
         )
 
-        # ----------------------------------------------------
-        # ALL ROOMS
-        # ----------------------------------------------------
+        # -----------------------------------------------------------
+        # Combine ALL room sources
+        # -----------------------------------------------------------
 
         all_rooms = (
             edupage_rooms
@@ -537,17 +505,13 @@ def home():
             | excel_rooms
         )
 
-        # ----------------------------------------------------
-        # OCCUPIED ROOMS
-        # ----------------------------------------------------
-
         occupied_rooms = set(
             edupage_occupied
         )
 
-        # ----------------------------------------------------
+        # -----------------------------------------------------------
         # PDF occupancy
-        # ----------------------------------------------------
+        # -----------------------------------------------------------
 
         for record in pdf_records:
 
@@ -567,9 +531,9 @@ def home():
                         room
                     )
 
-        # ----------------------------------------------------
-        # EXCEL occupancy
-        # ----------------------------------------------------
+        # -----------------------------------------------------------
+        # Excel occupancy
+        # -----------------------------------------------------------
 
         for record in excel_records:
 
@@ -589,9 +553,9 @@ def home():
                         room
                     )
 
-        # ----------------------------------------------------
-        # VACANT ROOMS
-        # ----------------------------------------------------
+        # -----------------------------------------------------------
+        # Vacant rooms
+        # -----------------------------------------------------------
 
         vacant_rooms = sorted(
             all_rooms - occupied_rooms
@@ -606,20 +570,11 @@ def home():
     )
 
 
-# ============================================================
-# RUN
-# ============================================================
+# ---------------------------------------------------------------------------
+# Run
+# ---------------------------------------------------------------------------
 
 if __name__ == "__main__":
-
-    port = int(
-        os.getenv(
-            "PORT",
-            "5000",
-        )
-    )
-
     app.run(
-        host="0.0.0.0",
-        port=port,
+        debug=True
     )
